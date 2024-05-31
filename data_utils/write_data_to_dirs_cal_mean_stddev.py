@@ -14,7 +14,7 @@ def cal_mean_stddev(opts, output_path):
     num_fonts = len(font_paths)
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
-    num_chars = len(charset)
+    num_chars = len(charset) 
     manager = mp.Manager()
     return_dict = manager.dict()
     main_stddev_accum = svg_utils.MeanStddev()
@@ -32,7 +32,6 @@ def cal_mean_stddev(opts, output_path):
                 cur_font_char['sequence'] = np.load(os.path.join(cur_font_path, 'sequence.npy')).tolist()[charid]
                 cur_sum_count = mean_stddev_accum.add_input(cur_sum_count, cur_font_char)
         return_dict[process_id] = cur_sum_count
-
     processes = [mp.Process(target=process, args=[pid, return_dict]) for pid in range(num_processes)]
 
     for p in processes:
