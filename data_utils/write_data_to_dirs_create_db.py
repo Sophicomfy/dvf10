@@ -33,7 +33,7 @@ def create_db(opts, output_path, log_path):
             
             # a whole font as an entry
             for char_id in range(num_chars):
-                print(char_id)
+            #    print(char_id)
                 if not os.path.exists(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))):
                     break
 
@@ -106,11 +106,16 @@ def create_db(opts, output_path, log_path):
                 np.save(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w), 'font_id.npy'), np.array(binaryfp))
                 np.save(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w), 'rendered_' + str(opts.img_size) + '.npy'), rendered)
 
-    processes = [mp.Process(target=process, args=[pid]) for pid in range(num_processes)]
+                with processed_fonts.get_lock():
+                    processed_fonts.value += 1
+                log_progress(process_id, processed_fonts, num_fonts, font_id, font_dir)
+    
+    while processed_fonts.value < num_fonts:
+        processes = [mp.Process(target=process, args=[pid]) for pid in range(num_processes)]
 
-    for p in processes:
-        p.start()
-    for p in processes:
-        p.join()
+        for p in processes:
+            p.start()
+        for p in processes:
+            p.join()
 
     print("Finished processing all sfd files, logs (invalid glyphs and paths) are saved to", log_path)
