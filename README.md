@@ -1,1 +1,1 @@
-Implementation of DeepVecFont v2 for extended character set.
+Implementation of [DeepVecFont v2](https://github.com/yizhiwang96/deepvecfont-v2/tree/main) for extended character set.
