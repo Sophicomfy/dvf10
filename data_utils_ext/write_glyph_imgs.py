@@ -21,7 +21,7 @@ def get_bbox(img):
     return width, height
 
 def write_glyph_imgs_mp(opts):
-    """Useing multiprocessing to render glyph images"""
+    """Using multiprocessing to render glyph images"""
     charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
     fonts_file_path = os.path.join(opts.ttf_path, opts.language)
     sfd_path = os.path.join(opts.sfd_path, opts.language)
@@ -59,6 +59,8 @@ def write_glyph_imgs_mp(opts):
             flag_success = True
             
             for charid in range(len(charset)):
+                char = charset[charid]
+
                 # read the meta file
                 txt_fpath = os.path.join(sfd_path, opts.split, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
                 try:
@@ -85,7 +87,10 @@ def write_glyph_imgs_mp(opts):
                     add_to_y = add_to_y * (float(opts.img_size) / norm)
                     add_to_x = 0
 
-                char = charset[charid]
+                # Increase bounding box size
+                add_to_x += opts.img_size * 0.2
+                add_to_y += opts.img_size * 0.2
+
                 array = np.ndarray((opts.img_size, opts.img_size), np.uint8)
                 array[:, :] = 255
                 image = Image.fromarray(array)
