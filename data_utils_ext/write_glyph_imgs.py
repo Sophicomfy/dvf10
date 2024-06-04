@@ -60,6 +60,10 @@ def write_glyph_imgs_mp(opts):
             
             for charid in range(len(charset)):
                 char = charset[charid]
+                # Skip problematic characters
+                if char == '_':
+                    print(f"Skipping problematic character: {char} (charid {charid})")
+                    continue
 
                 # read the meta file
                 txt_fpath = os.path.join(sfd_path, opts.split, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
@@ -86,10 +90,6 @@ def write_glyph_imgs_mp(opts):
                     add_to_y = abs(int(vbox_h) - int(vbox_w)) / 2
                     add_to_y = add_to_y * (float(opts.img_size) / norm)
                     add_to_x = 0
-
-                # Increase bounding box size
-                add_to_x += opts.img_size * 0.2
-                add_to_y += opts.img_size * 0.2
 
                 array = np.ndarray((opts.img_size, opts.img_size), np.uint8)
                 array[:, :] = 255
