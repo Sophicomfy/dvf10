@@ -74,9 +74,12 @@ def convert_mp(opts):
 
                 new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
+                width_with_margin = new_font_for_char['A'].width + 2 * opts.margin
+                vwidth_with_margin = new_font_for_char['A'].vwidth + 2 * opts.margin
+
                 char_description.write(str(ord(char)) + '\n')
-                char_description.write(str(new_font_for_char['A'].width) + '\n')
-                char_description.write(str(new_font_for_char['A'].vwidth) + '\n')
+                char_description.write(str(width_with_margin) + '\n')
+                char_description.write(str(vwidth_with_margin) + '\n')
                 char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\n')
                 char_description.write('{}'.format(font_id))
 
@@ -151,6 +154,7 @@ def main():
     parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
     parser.add_argument('--split', type=str, default='train')
     parser.add_argument('--workers', type=int, default=mp.cpu_count() - 2, help='Number of worker processes to run')
+    parser.add_argument('--margin', type=int, default=0, help='Margin to add to bounding box dimensions')
     opts = parser.parse_args()
     convert_mp(opts)
 
