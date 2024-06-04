@@ -11,8 +11,12 @@ def get_bbox(img):
     sum_x = np.sum(img, axis=0)
     sum_y = np.sum(img, axis=1)
     range_x = np.where(sum_x > 0)
+    if range_x[0].size == 0:
+        raise ValueError("No content in the image to calculate bounding box.")
     width = range_x[0][-1] - range_x[0][0]
     range_y = np.where(sum_y > 0)
+    if range_y[0].size == 0:
+        raise ValueError("No content in the image to calculate bounding box.")
     height = range_y[0][-1] - range_y[0][0]
     return width, height
 
@@ -35,17 +39,18 @@ def write_glyph_imgs_mp(opts):
                 break
 
             fontname = ttf_names[i].split('.')[0]
-            print(fontname)
+            print(f"Processing {fontname} in process {process_id}")
 
             if not os.path.exists(os.path.join(sfd_path, opts.split, fontname)):
+                print(f"Directory not found for {fontname}, skipping.")
                 continue
 
             ttf_file_path = os.path.join(fonts_file_path, opts.split, ttf_names[i])
 
             try:
                 font = ImageFont.truetype(ttf_file_path, opts.img_size, encoding="unic")
-            except:
-                print('cant open ' + fontname)
+            except Exception as e:
+                print(f"Cannot open {fontname}: {e}")
                 continue
                              
             fontimgs_array = np.zeros((len(charset), opts.img_size, opts.img_size), np.uint8)
@@ -58,11 +63,12 @@ def write_glyph_imgs_mp(opts):
                 txt_fpath = os.path.join(sfd_path, opts.split, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
-                except:
-                    print('cannot read text file')
+                except Exception as e:
+                    print(f"Cannot read text file for {fontname}: {e}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5: 
+                    print(f"Text file too short for {fontname}, skipping.")
                     flag_success = False
                     break # should be empty file
                 # the offsets are calculated according to the rules in data_utils/svg_utils.py
@@ -86,23 +92,20 @@ def write_glyph_imgs_mp(opts):
                 draw = ImageDraw.Draw(image)
                 try:
                     font_width, font_height = font.getsize(char)
-                except:
-                    print('cant calculate height and width ' + "%04d"%i + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw))
+                except Exception as e:
+                    print(f"Cannot calculate height and width for {fontname} (char {charid}): {e}")
                     flag_success = False
                     break
                 
                 try:
                     ascent, descent = font.getmetrics()
-                except:
-                    print('cannot get ascent, descent')
+                except Exception as e:
+                    print(f"Cannot get ascent, descent for {fontname} (char {charid}): {e}")
                     flag_success = False
                     break
                 
                 draw_pos_x = add_to_x
-                #if opts.language == 'eng':
                 draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0))
-                #else:
-                #    draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (10.0 / 3.0))
                 
                 draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
                 
@@ -111,12 +114,13 @@ def write_glyph_imgs_mp(opts):
 
                 try:
                     char_w, char_h = get_bbox(image)
-                # print(charid, char_w, char_h)
-                except:
+                except Exception as e:
+                    print(f"Cannot get bounding box for {fontname} (char {charid}): {e}")
                     flag_success = False
                     break
                 
                 if (char_w < opts.img_size * 0.15) and (char_h < opts.img_size * 0.15):
+                    print(f"Bounding box too small for {fontname} (char {charid}), skipping.")
                     flag_success = False
                     break
                 
@@ -124,6 +128,7 @@ def write_glyph_imgs_mp(opts):
 
             if flag_success:
                 np.save(os.path.join(sfd_path, opts.split, fontname, 'imgs_' + str(opts.img_size) + '.npy'), fontimgs_array)
+                print(f"Saved .npy file for {fontname} in process {process_id}")
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_nums)]
 
