@@ -17,7 +17,7 @@ def list_files(directory):
             else:
                 file_types[ext] = 1
             all_files.append(os.path.join(root, file))
-            print(f"Found file: {os.path.join(root, file)}")  # Log each file found
+            # print(f"Found file: {os.path.join(root, file)}")  # Log each file found
     print("Found file types:")
     for ext, count in file_types.items():
         print(f"  {ext} {count}")
@@ -25,12 +25,11 @@ def list_files(directory):
 
 def convert_mp(opts):
     """Using multiprocessing to convert all fonts to sfd files"""
-    all_files = list_files(os.path.join(opts.ttf_path, opts.language, opts.split))  # Add file type listing check
+    all_files = list_files(opts.ttf_path)  # List files directly from the ttf_path
 
     charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
     charset_lenw = len(str(len(charset)))
-    fonts_file_path = os.path.join(opts.ttf_path, opts.language)
-    sfd_path = os.path.join(opts.sfd_path, opts.language)
+    sfd_path = opts.sfd_path
     
     ttf_fnames = [file for file in all_files if file.endswith('.ttf') or file.endswith('.otf')]
     
@@ -57,20 +56,17 @@ def convert_mp(opts):
             except queue.Empty:
                 break
 
-            font_id = ttf_fnames[i].split('.')[0]
-            split = opts.split
-            font_name = ttf_fnames[i]
-            
-            font_file_path = os.path.join(fonts_file_path, split, font_name)
+            font_id = os.path.splitext(os.path.basename(ttf_fnames[i]))[0]
+            font_file_path = ttf_fnames[i]
             try:
                 cur_font = fontforge.open(font_file_path)
                 cur_font.encoding = "UnicodeFull"  # Set encoding to UnicodeFull
             except Exception as e:
-                print('Cannot open ', font_name)
+                print('Cannot open ', font_file_path)
                 print(e)
                 continue
 
-            target_dir = os.path.join(sfd_path, split, "{}".format(font_id))
+            target_dir = os.path.join(sfd_path, "{}".format(font_id))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
@@ -87,7 +83,7 @@ def convert_mp(opts):
                 new_font_for_char.encoding = "UnicodeFull"  # Set encoding to UnicodeFull
                 new_font_for_char.selection.select('A')
                 new_font_for_char.paste()
-                new_font_for_char.fontname = "{}_{}".format(font_id, font_name)
+                new_font_for_char.fontname = "{}_{}".format(font_id, os.path.basename(font_file_path))
 
                 new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
@@ -106,7 +102,7 @@ def convert_mp(opts):
             with processed_fonts.get_lock():
                 processed_fonts.value += 1
 
-            print(f"[{datetime.now()}] Process {process_id} processed font {processed_fonts.value}/{font_num} - {font_name}")
+            print(f"[{datetime.now()}] Process {process_id} processed font {processed_fonts.value}/{font_num} - {font_file_path}")
 
     def monitor_processes(processes, task_queue, interval=10):
         while any(p.is_alive() for p in processes) or not task_queue.empty():
