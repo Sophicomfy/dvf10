@@ -6,18 +6,34 @@ import time
 from datetime import datetime
 import threading
 
-# conda deactivate
-# apt install python3-fontforge
+def list_files(directory):
+    file_types = {}
+    all_files = []
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            ext = os.path.splitext(file)[1]
+            if ext in file_types:
+                file_types[ext] += 1
+            else:
+                file_types[ext] = 1
+            all_files.append(os.path.join(root, file))
+            print(f"Found file: {os.path.join(root, file)}")  # Log each file found
+    print("Found file types:")
+    for ext, count in file_types.items():
+        print(f"  {ext} {count}")
+    return all_files
 
 def convert_mp(opts):
     """Using multiprocessing to convert all fonts to sfd files"""
+    all_files = list_files(os.path.join(opts.ttf_path, opts.language, opts.split))  # Add file type listing check
+
     charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
     charset_lenw = len(str(len(charset)))
     fonts_file_path = os.path.join(opts.ttf_path, opts.language)
     sfd_path = os.path.join(opts.sfd_path, opts.language)
-    ttf_fnames = []
-    for root, dirs, files in os.walk(os.path.join(fonts_file_path, opts.split)):
-        ttf_fnames.extend([file for file in files if file.endswith('.ttf') or file.endswith('.otf')])
+    
+    ttf_fnames = [file for file in all_files if file.endswith('.ttf') or file.endswith('.otf')]
+    
     font_num = len(ttf_fnames)
     print(f"Total number of fonts to process: {font_num}")
     
@@ -146,7 +162,6 @@ def convert_mp(opts):
 
     print(f"Total number of fonts processed: {processed_fonts.value}")  # Print total number of fonts processed
     print(f"Total processing time: {end_time - start_time:.2f} seconds")
-
 
 def main():
     parser = argparse.ArgumentParser(description="Convert ttf fonts to sfd files")
