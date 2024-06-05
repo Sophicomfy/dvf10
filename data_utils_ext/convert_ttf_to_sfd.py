@@ -15,11 +15,12 @@ def convert_mp(opts):
     charset_lenw = len(str(len(charset)))
     fonts_file_path = os.path.join(opts.ttf_path, opts.language)
     sfd_path = os.path.join(opts.sfd_path, opts.language)
+    ttf_fnames = []
     for root, dirs, files in os.walk(os.path.join(fonts_file_path, opts.split)):
-        ttf_fnames = files
-    
+        ttf_fnames.extend([file for file in files if file.endswith('.ttf') or file.endswith('.otf')])
     font_num = len(ttf_fnames)
-    print(f"Total number of fonts to process: {font_num}")  # Print total number of fonts at the beginning
+    print(f"Total number of fonts to process: {font_num}")
+    
     process_num = min(opts.workers, mp.cpu_count() - 1)  # Adjust the number of workers
     font_num_per_process = font_num // process_num + 1
 
