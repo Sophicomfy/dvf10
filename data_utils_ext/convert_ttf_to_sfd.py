@@ -17,7 +17,7 @@ def list_files(directory):
             else:
                 file_types[ext] = 1
             all_files.append(os.path.join(root, file))
-            # print(f"Found file: {os.path.join(root, file)}")  # Log each file found
+            print(f"Found file: {os.path.join(root, file)}")  # Log each file found
     print("Found file types:")
     for ext, count in file_types.items():
         print(f"  {ext} {count}")
@@ -27,7 +27,7 @@ def convert_mp(opts):
     """Using multiprocessing to convert all fonts to sfd files"""
     all_files = list_files(opts.ttf_path)  # List files directly from the ttf_path
 
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    charset = open(opts.charset_path, 'r').read()
     charset_lenw = len(str(len(charset)))
     sfd_path = opts.sfd_path
     
@@ -164,7 +164,7 @@ def main():
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
     parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
     parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
-    parser.add_argument('--split', type=str, default='train')
+    parser.add_argument('--charset_path', type=str, required=True, help='Path to the character set .txt file')
     parser.add_argument('--workers', type=int, default=mp.cpu_count() - 2, help='Number of worker processes to run')
     parser.add_argument('--margin', type=int, default=0, help='Margin to add to bounding box dimensions')
     opts = parser.parse_args()
