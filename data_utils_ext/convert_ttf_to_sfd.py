@@ -48,6 +48,10 @@ def convert_mp(opts):
                 new_font_for_char.paste()
                 new_font_for_char.fontname = "{}_".format(font_id) + font_name
 
+                if opts.margin:
+                    new_font_for_char[char].left_side_bearing = opts.margin
+                    new_font_for_char[char].right_side_bearing = opts.margin
+
                 new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
                 char_description.write(str(ord(char)) + '\n')
@@ -73,6 +77,7 @@ def main():
     parser.add_argument('--sfd_path', type=str, required=True, help='Path to save SFD font files')
     parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
     parser.add_argument('--workers', type=int, default=mp.cpu_count() - 1, help='Number of worker processes to use')
+    parser.add_argument('--margin', type=int, default=0, help='Margin for character bounding box')
     opts = parser.parse_args()
     convert_mp(opts)
 
