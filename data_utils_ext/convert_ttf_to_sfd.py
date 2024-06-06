@@ -41,16 +41,17 @@ def convert_mp(opts):
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
-                # Default Unicode handling
-                if not char.startswith('uni'):
-                    char = 'uni' + char.encode("unicode_escape")[2:].decode("utf-8")
-                
                 try:
-                    cur_font.selection.select(char)
+                    if char.startswith('uni'):
+                        unicode_value = int(char[3:], 16)
+                    else:
+                        unicode_value = ord(char)
+
+                    cur_font.selection.select(unicode_value)
                     cur_font.copy()
 
                     new_font_for_char = fontforge.font()
-                    glyph_name = cur_font[char].glyphname
+                    glyph_name = cur_font[unicode_value].glyphname
                     new_font_for_char.selection.select(glyph_name)
                     new_font_for_char.paste()
                     new_font_for_char.fontname = "{}_{}".format(font_id, glyph_name)
