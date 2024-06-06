@@ -3,14 +3,11 @@ import os
 import multiprocessing as mp
 import argparse
 
-# conda deactivate
-# apt install python3-fontforge
-
 def convert_mp(opts):
     """Useing multiprocessing to convert all fonts to sfd files"""
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    charset = open(opts.charset_path, 'r').read()
     charset_lenw = len(str(len(charset)))
-    fonts_file_path = os.path.join(opts.ttf_path, opts.language) # opts.ttf_path,opts.language, 
+    fonts_file_path = os.path.join(opts.ttf_path, opts.language) 
     sfd_path = os.path.join(opts.sfd_path, opts.language)
     for root, dirs, files in os.walk(os.path.join(fonts_file_path, opts.split)):
         ttf_fnames = files
@@ -74,13 +71,13 @@ def convert_mp(opts):
     for p in processes:
         p.join()
 
-
 def main():
     parser = argparse.ArgumentParser(description="Convert ttf fonts to sfd fonts")
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
     parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
     parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
     parser.add_argument('--split', type=str, default='train')
+    parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
     opts = parser.parse_args()
     convert_mp(opts)
 
