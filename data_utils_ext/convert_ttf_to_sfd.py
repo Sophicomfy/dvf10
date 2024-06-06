@@ -13,7 +13,7 @@ def convert_mp(opts):
         ttf_fnames = files
     
     font_num = len(ttf_fnames)
-    process_num = mp.cpu_count() - 2
+    process_num = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_num + 1
 
     def process(process_id, font_num_p_process):
@@ -72,6 +72,7 @@ def main():
     parser.add_argument("--ttf_path", type=str, required=True, help='Path to TTF font files directory')
     parser.add_argument('--sfd_path', type=str, required=True, help='Path to save SFD font files')
     parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
+    parser.add_argument('--workers', type=int, default=mp.cpu_count() - 1, help='Number of worker processes to use')
     opts = parser.parse_args()
     convert_mp(opts)
 
