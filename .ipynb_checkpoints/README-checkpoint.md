@@ -1,1 +1,0 @@
-Implementation of DeepVecFont v2 for extended character set.
