@@ -17,6 +17,8 @@ def convert_mp(opts):
     process_num = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_num + 1
 
+    print(f"Total fonts to be processed: {font_num}")
+
     def process(process_id, font_num_p_process):
         for i in range(process_id * font_num_p_process, (process_id + 1) * font_num_p_process):
             if i >= font_num:
@@ -36,6 +38,8 @@ def convert_mp(opts):
             target_dir = os.path.join(sfd_path, "{}".format(font_id))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
+
+            print(f"Processed font: {font_file_path} to {target_dir} by worker: {process_id}")
 
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
@@ -58,6 +62,11 @@ def convert_mp(opts):
                         new_font_for_char['A'].right_side_bearing = opts.margin
 
                     new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
+
+                    print(f"Processed glyph: {char} from {font_file_path}")
+                    print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))}")
+                    print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw))}")
+                    print(f"by worker: {process_id}")
 
                     char_description.write(char + '\\n')
                     char_description.write(str(new_font_for_char['A'].width) + '\\n')
