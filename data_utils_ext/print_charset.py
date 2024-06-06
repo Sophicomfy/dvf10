@@ -10,7 +10,11 @@ glyphs = font.glyphs()
 print("Character Set of the Font:")
 for glyph in glyphs:
     if glyph.unicode != -1:  # Only consider glyphs with valid Unicode values
-        print(chr(glyph.unicode), end=' ')
+        unicode_hex = f"{glyph.unicode:04X}"
+        if glyph.unicode < 128:
+            print(chr(glyph.unicode), end=' ')
+        else:
+            print(f"uni{unicode_hex}", end=' ')
 print()  # For a new line at the end
 
 # Close the font file
