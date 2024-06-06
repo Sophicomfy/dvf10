@@ -59,10 +59,15 @@ def convert_mp(opts):
 
                     new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
-                    char_description.write(str(ord(char)) + '\n')
-                    char_description.write(str(new_font_for_char['A'].width) + '\n')
-                    char_description.write(str(new_font_for_char['A'].vwidth) + '\n')
-                    char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\n')
+                    if char.startswith('uni'):
+                        unicode_value = int(char[3:], 16)
+                    else:
+                        unicode_value = ord(char)
+
+                    char_description.write(str(unicode_value) + '\\n')
+                    char_description.write(str(new_font_for_char['A'].width) + '\\n')
+                    char_description.write(str(new_font_for_char['A'].vwidth) + '\\n')
+                    char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\\n')
                     char_description.write('{}'.format(font_id))
 
                 except Exception as e:
