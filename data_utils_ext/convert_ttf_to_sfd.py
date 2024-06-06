@@ -39,24 +39,26 @@ def convert_mp(opts):
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
+                # Default Unicode handling
+                char = 'uni' + char.encode("unicode_escape")[2:].decode("utf-8")
+                
                 cur_font.selection.select(char)
                 cur_font.copy()
 
                 new_font_for_char = fontforge.font()
-                char = 'A'
-                new_font_for_char.selection.select(char)
+                new_font_for_char.selection.select('A')
                 new_font_for_char.paste()
                 new_font_for_char.fontname = "{}_".format(font_id) + font_name
 
                 if opts.margin:
-                    new_font_for_char[char].left_side_bearing = opts.margin
-                    new_font_for_char[char].right_side_bearing = opts.margin
+                    new_font_for_char['A'].left_side_bearing = opts.margin
+                    new_font_for_char['A'].right_side_bearing = opts.margin
 
                 new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
                 char_description.write(str(ord(char)) + '\n')
-                char_description.write(str(new_font_for_char[char].width) + '\n')
-                char_description.write(str(new_font_for_char[char].vwidth) + '\n')
+                char_description.write(str(new_font_for_char['A'].width) + '\n')
+                char_description.write(str(new_font_for_char['A'].vwidth) + '\n')
                 char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\n')
                 char_description.write('{}'.format(font_id))
 
