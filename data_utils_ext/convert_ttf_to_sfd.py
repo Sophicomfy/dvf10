@@ -1,7 +1,7 @@
 import fontforge  # noqa
 import os
 import multiprocessing as mp
-import argparse
+import data_preprocess_options
 
 def convert_mp(opts):
     """Using multiprocessing to convert all fonts to sfd files"""
@@ -72,12 +72,7 @@ def convert_mp(opts):
         p.join()
 
 def main():
-    parser = argparse.ArgumentParser(description="Convert ttf fonts to sfd fonts")
-    parser.add_argument("--ttf_path", type=str, required=True, help='Path to TTF font files directory')
-    parser.add_argument('--sfd_path', type=str, required=True, help='Path to save SFD font files')
-    parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
-    parser.add_argument('--workers', type=int, default=mp.cpu_count() - 1, help='Number of worker processes to use')
-    parser.add_argument('--margin', type=int, default=0, help='Margin for character bounding box')
+    parser = data_preprocess_options.get_data_preprocess_options()
     opts = parser.parse_args()
     convert_mp(opts)
 
