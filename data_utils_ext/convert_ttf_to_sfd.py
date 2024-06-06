@@ -63,9 +63,9 @@ def convert_mp(opts):
 
                     new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
 
-                    print(f"Processed glyph: {char} from {font_file_path} by worker {process_id}")
-                    print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))}")
-                    print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw))}")
+                    # print(f"Processed glyph: {char} from {font_file_path} by worker {process_id}")
+                    # print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))}")
+                    # print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw))}")
 
                     char_description.write(char + '\\n')
                     char_description.write(str(new_font_for_char['A'].width) + '\\n')
