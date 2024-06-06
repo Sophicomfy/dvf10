@@ -4,12 +4,12 @@ import multiprocessing as mp
 import argparse
 
 def convert_mp(opts):
-    """Useing multiprocessing to convert all fonts to sfd files"""
+    """Using multiprocessing to convert all fonts to sfd files"""
     charset = open(opts.charset_path, 'r').read()
     charset_lenw = len(str(len(charset)))
-    fonts_file_path = os.path.join(opts.ttf_path, opts.language) 
-    sfd_path = os.path.join(opts.sfd_path, opts.language)
-    for root, dirs, files in os.walk(os.path.join(fonts_file_path, opts.split)):
+    fonts_file_path = opts.ttf_path
+    sfd_path = opts.sfd_path
+    for root, dirs, files in os.walk(fonts_file_path):
         ttf_fnames = files
     
     font_num = len(ttf_fnames)
@@ -22,10 +22,9 @@ def convert_mp(opts):
                 break
             
             font_id = ttf_fnames[i].split('.')[0]
-            split = opts.split
             font_name = ttf_fnames[i]
             
-            font_file_path = os.path.join(fonts_file_path, split, font_name)
+            font_file_path = os.path.join(fonts_file_path, font_name)
             try:
                 cur_font = fontforge.open(font_file_path)
             except Exception as e:
@@ -33,16 +32,13 @@ def convert_mp(opts):
                 print(e)
                 continue
 
-            target_dir = os.path.join(sfd_path, split, "{}".format(font_id))
+            target_dir = os.path.join(sfd_path, "{}".format(font_id))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
-                if opts.language == 'chn':
-                    char = 'uni' + char.encode("unicode_escape")[2:].decode("utf-8")
-                
                 cur_font.selection.select(char)
                 cur_font.copy()
 
@@ -73,10 +69,8 @@ def convert_mp(opts):
 
 def main():
     parser = argparse.ArgumentParser(description="Convert ttf fonts to sfd fonts")
-    parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
-    parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
-    parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
-    parser.add_argument('--split', type=str, default='train')
+    parser.add_argument("--ttf_path", type=str, required=True, help='Path to TTF font files directory')
+    parser.add_argument('--sfd_path', type=str, required=True, help='Path to save SFD font files')
     parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
     opts = parser.parse_args()
     convert_mp(opts)
