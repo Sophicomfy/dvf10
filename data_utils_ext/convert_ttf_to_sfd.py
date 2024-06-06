@@ -12,18 +12,17 @@ def convert_mp(opts):
     sfd_path = opts.sfd_path
     for root, dirs, files in os.walk(fonts_file_path):
         ttf_fnames = files
-    
+
     font_num = len(ttf_fnames)
+    print(f"Total fonts to be processed: {font_num}")
     process_num = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_num + 1
-
-    print(f"Total fonts to be processed: {font_num}")
 
     def process(process_id, font_num_p_process):
         for i in range(process_id * font_num_p_process, (process_id + 1) * font_num_p_process):
             if i >= font_num:
                 break
-            
+
             font_id = ttf_fnames[i].split('.')[0]
             font_name = ttf_fnames[i]
             
@@ -31,15 +30,13 @@ def convert_mp(opts):
             try:
                 cur_font = fontforge.open(font_file_path)
             except Exception as e:
-                print('Cannot open ', font_name)
+                print(f"Cannot open {font_name}")
                 print(e)
                 continue
 
             target_dir = os.path.join(sfd_path, "{}".format(font_id))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
-
-            print(f"Processed font: {font_file_path} to {target_dir} by worker: {process_id}")
 
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
@@ -53,32 +50,31 @@ def convert_mp(opts):
                     cur_font.copy()
 
                     new_font_for_char = fontforge.font()
-                    new_font_for_char.selection.select('A')
+                    glyph_name = cur_font[char].glyphname
+                    new_font_for_char.selection.select(glyph_name)
                     new_font_for_char.paste()
-                    new_font_for_char.fontname = "{}_".format(font_id) + font_name
+                    new_font_for_char.fontname = "{}_{}".format(font_id, glyph_name)
 
                     if opts.margin:
-                        new_font_for_char['A'].left_side_bearing = opts.margin
-                        new_font_for_char['A'].right_side_bearing = opts.margin
+                        new_font_for_char[glyph_name].left_side_bearing = opts.margin
+                        new_font_for_char[glyph_name].right_side_bearing = opts.margin
 
-                    new_font_for_char.save(os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw)))
+                    sfd_file_path = os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))
+                    new_font_for_char.save(sfd_file_path)
 
-                    # print(f"Processed glyph: {char} from {font_file_path} by worker {process_id}")
-                    # print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))}")
-                    # print(f"  {os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw))}")
-
-                    char_description.write(char + '\\n')
-                    char_description.write(str(new_font_for_char['A'].width) + '\\n')
-                    char_description.write(str(new_font_for_char['A'].vwidth) + '\\n')
-                    char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\\n')
+                    char_description.write(glyph_name + '\n')
+                    char_description.write(str(new_font_for_char[glyph_name].width) + '\n')
+                    char_description.write(str(new_font_for_char[glyph_name].vwidth) + '\n')
+                    char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\n')
                     char_description.write('{}'.format(font_id))
 
                 except Exception as e:
-                    print(f'Error processing character {char}: {e}')
-                
+                    print(f"Error processing character {char}: {e}")
+
                 char_description.close()
 
             cur_font.close()
+            print(f"Processed font: {font_file_path} to {target_dir} by worker {process_id}")
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_num)]
 
