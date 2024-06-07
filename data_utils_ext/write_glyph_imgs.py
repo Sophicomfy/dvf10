@@ -58,7 +58,7 @@ def write_glyph_imgs_mp(opts):
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
-                    print(f"cannot read text file: {txt_fpath} for charid: {charid}")
+                    print(f"cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5: 
