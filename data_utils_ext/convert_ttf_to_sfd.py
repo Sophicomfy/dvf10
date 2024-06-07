@@ -12,17 +12,19 @@ def convert_mp(opts):
     sfd_path = opts.sfd_path
     for root, dirs, files in os.walk(fonts_file_path):
         ttf_fnames = files
-
+    
     font_num = len(ttf_fnames)
     print(f"Total fonts to be processed: {font_num}")
     process_num = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_num + 1
+    processed_fonts = mp.Value('i', 0)
 
     def process(process_id, font_num_p_process):
+        nonlocal processed_fonts
         for i in range(process_id * font_num_p_process, (process_id + 1) * font_num_p_process):
             if i >= font_num:
                 break
-
+            
             font_id = ttf_fnames[i].split('.')[0]
             font_name = ttf_fnames[i]
             
@@ -61,10 +63,10 @@ def convert_mp(opts):
                     sfd_file_path = os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))
                     new_font_for_char.save(sfd_file_path)
 
-                    char_description.write(char + '\\n')
-                    char_description.write(str(new_font_for_char['A'].width) + '\\n')
-                    char_description.write(str(new_font_for_char['A'].vwidth) + '\\n')
-                    char_description.write('{num:0{width}}'.format(num=char_id, width=charset_lenw) + '\\n')
+                    char_description.write(f"{char}\n")
+                    char_description.write(f"{new_font_for_char['A'].width}\n")
+                    char_description.write(f"{new_font_for_char['A'].vwidth}\n")
+                    char_description.write('{num:0{width}}\n'.format(num=char_id, width=charset_lenw))
                     char_description.write('{}'.format(font_id))
 
                 except Exception as e:
@@ -73,6 +75,9 @@ def convert_mp(opts):
                 char_description.close()
 
             cur_font.close()
+            with processed_fonts.get_lock():
+                processed_fonts.value += 1
+                print(f"Progress: {processed_fonts.value}/{font_num} processed fonts")
             print(f"Processed font: {font_file_path} to {target_dir} by worker {process_id}")
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_num)]
