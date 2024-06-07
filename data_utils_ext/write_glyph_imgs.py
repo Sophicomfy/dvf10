@@ -17,7 +17,8 @@ def get_bbox(img):
     return width, height
 
 def write_glyph_imgs_mp(opts):
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    """Using multiprocessing to render glyph images"""
+    charset = open(opts.charset_path, 'r').read()
     fonts_file_path = opts.ttf_path
     sfd_path = opts.sfd_path
     for root, dirs, files in os.walk(fonts_file_path):
@@ -129,11 +130,11 @@ def write_glyph_imgs_mp(opts):
 
 def main():
     parser = argparse.ArgumentParser(description="Write glyph images")
-    parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
+    # Removed --language and --split arguments
     parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
     parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
+    parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')  # Added argument for charset path
     parser.add_argument('--img_size', type=int, default=64)
-    parser.add_argument('--split', type=str, default='train')
     parser.add_argument('--debug', type=bool, default=False)
     opts = parser.parse_args()
     write_glyph_imgs_mp(opts)
