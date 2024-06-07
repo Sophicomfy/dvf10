@@ -29,22 +29,22 @@ def write_glyph_imgs_mp(opts):
     font_num_per_process = font_num // process_nums + 1
 
     def process(process_id, font_num_p_process):
+        worker_name = f"worker_{process_id}"
         for i in range(process_id * font_num_p_process, (process_id + 1) * font_num_p_process):
             if i >= font_num:
                 break
 
             fontname = ttf_names[i].split('.')[0]
-            print(fontname)
+            ttf_file_path = os.path.join(fonts_file_path, ttf_names[i])
+            print(f"Processing {ttf_file_path} by worker {worker_name}")
 
             if not os.path.exists(os.path.join(sfd_path, fontname)):
                 continue
 
-            ttf_file_path = os.path.join(fonts_file_path, ttf_names[i])
-
             try:
                 font = ImageFont.truetype(ttf_file_path, opts.img_size, encoding="unic")
             except:
-                print('cant open ' + fontname)
+                print(f"Can't open {ttf_file_path}")
                 continue
                              
             fontimgs_array = np.zeros((len(charset), opts.img_size, opts.img_size), np.uint8)
@@ -53,18 +53,16 @@ def write_glyph_imgs_mp(opts):
             flag_success = True
             
             for charid in range(len(charset)):
-                # read the meta file
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
-                    print(f"cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}")
+                    print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5: 
                     flag_success = False
-                    break # should be empty file
-                # the offsets are calculated according to the rules in data_utils/svg_utils.py
+                    break
                 vbox_w = float(txt_lines[1])
                 vbox_h = float(txt_lines[2])
                 norm = max(int(vbox_w), int(vbox_h))
@@ -86,14 +84,14 @@ def write_glyph_imgs_mp(opts):
                 try:
                     font_width, font_height = font.getsize(char)
                 except:
-                    print(f'cant calculate height and width for charid {charid} in font {fontname}')
+                    print(f"Can't calculate height and width for charid {charid} in font {fontname}")
                     flag_success = False
                     break
                 
                 try:
                     ascent, descent = font.getmetrics()
                 except:
-                    print(f'cannot get ascent, descent for charid {charid} in font {fontname}')
+                    print(f"Cannot get ascent, descent for charid {charid} in font {fontname}")
                     flag_success = False
                     break
                 
