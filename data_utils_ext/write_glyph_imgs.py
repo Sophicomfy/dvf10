@@ -58,7 +58,7 @@ def write_glyph_imgs_mp(opts):
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
-                    print('cannot read text file')
+                    print(f'cannot read text file: {txt_fpath}')
                     flag_success = False
                     break
                 if len(txt_lines) < 5: 
@@ -86,19 +86,19 @@ def write_glyph_imgs_mp(opts):
                 try:
                     font_width, font_height = font.getsize(char)
                 except:
-                    print('cant calculate height and width ' + "%04d"%i + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw))
+                    print(f'cant calculate height and width for charid {charid} in font {fontname}')
                     flag_success = False
                     break
                 
                 try:
                     ascent, descent = font.getmetrics()
                 except:
-                    print('cannot get ascent, descent')
+                    print(f'cannot get ascent, descent for charid {charid} in font {fontname}')
                     flag_success = False
                     break
                 
                 draw_pos_x = add_to_x + opts.margin
-                draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0)) + opts.margin  # Adjusting margin
+                draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0)) + opts.margin
                 
                 draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
                 
