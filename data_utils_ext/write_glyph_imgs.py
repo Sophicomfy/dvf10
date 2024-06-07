@@ -17,13 +17,11 @@ def get_bbox(img):
     return width, height
 
 def write_glyph_imgs_mp(opts):
-    """Useing multiprocessing to render glyph images"""
     charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
-    fonts_file_path = os.path.join(opts.ttf_path, opts.language)
-    sfd_path = os.path.join(opts.sfd_path, opts.language)
-    for root, dirs, files in os.walk(os.path.join(fonts_file_path, opts.split)):
+    fonts_file_path = opts.ttf_path
+    sfd_path = opts.sfd_path
+    for root, dirs, files in os.walk(fonts_file_path):
         ttf_names = files
-    # ttf_names = ['08343.aspx_id=299524532']
     ttf_names.sort()
     font_num = len(ttf_names)
     charset_lenw = len(str(len(charset)))
@@ -38,10 +36,10 @@ def write_glyph_imgs_mp(opts):
             fontname = ttf_names[i].split('.')[0]
             print(fontname)
 
-            if not os.path.exists(os.path.join(sfd_path, opts.split, fontname)):
+            if not os.path.exists(os.path.join(sfd_path, fontname)):
                 continue
 
-            ttf_file_path = os.path.join(fonts_file_path, opts.split, ttf_names[i])
+            ttf_file_path = os.path.join(fonts_file_path, ttf_names[i])
 
             try:
                 font = ImageFont.truetype(ttf_file_path, opts.img_size, encoding="unic")
@@ -56,7 +54,7 @@ def write_glyph_imgs_mp(opts):
             
             for charid in range(len(charset)):
                 # read the meta file
-                txt_fpath = os.path.join(sfd_path, opts.split, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
+                txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
@@ -100,19 +98,15 @@ def write_glyph_imgs_mp(opts):
                     break
                 
                 draw_pos_x = add_to_x
-                #if opts.language == 'eng':
                 draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0))
-                #else:
-                #    draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (10.0 / 3.0))
                 
                 draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
                 
                 if opts.debug:
-                    image.save(os.path.join(sfd_path, opts.split, fontname, str(charid) + '_' + str(opts.img_size) + '.png'))
+                    image.save(os.path.join(sfd_path, fontname, str(charid) + '_' + str(opts.img_size) + '.png'))
 
                 try:
                     char_w, char_h = get_bbox(image)
-                # print(charid, char_w, char_h)
                 except:
                     flag_success = False
                     break
@@ -124,7 +118,7 @@ def write_glyph_imgs_mp(opts):
                 fontimgs_array[charid] = np.array(image)
 
             if flag_success:
-                np.save(os.path.join(sfd_path, opts.split, fontname, 'imgs_' + str(opts.img_size) + '.npy'), fontimgs_array)
+                np.save(os.path.join(sfd_path, fontname, 'imgs_' + str(opts.img_size) + '.npy'), fontimgs_array)
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_nums)]
 
@@ -143,7 +137,6 @@ def main():
     parser.add_argument('--debug', type=bool, default=False)
     opts = parser.parse_args()
     write_glyph_imgs_mp(opts)
-
 
 if __name__ == "__main__":
     main()
