@@ -1,10 +1,10 @@
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
-import argparse
 import numpy as np
 import os
 import multiprocessing as mp
+import data_preprocess_options
 
 def get_bbox(img):
     img = 255 - np.array(img)
@@ -128,12 +128,7 @@ def write_glyph_imgs_mp(opts):
         p.join()
 
 def main():
-    parser = argparse.ArgumentParser(description="Write glyph images")
-    parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
-    parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
-    parser.add_argument('--charset_path', type=str, required=True, help='Path to charset.txt file')
-    parser.add_argument('--img_size', type=int, default=64)
-    parser.add_argument('--debug', type=bool, default=False)
+    parser = data_preprocess_options.get_data_preprocess_options()
     opts = parser.parse_args()
     write_glyph_imgs_mp(opts)
 
