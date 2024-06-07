@@ -25,7 +25,7 @@ def write_glyph_imgs_mp(opts):
     ttf_names.sort()
     font_num = len(ttf_names)
     charset_lenw = len(str(len(charset)))
-    process_nums = mp.cpu_count() - 2
+    process_nums = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_nums + 1
 
     def process(process_id, font_num_p_process):
@@ -97,8 +97,8 @@ def write_glyph_imgs_mp(opts):
                     flag_success = False
                     break
                 
-                draw_pos_x = add_to_x
-                draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0))
+                draw_pos_x = add_to_x + opts.margin
+                draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0)) + opts.margin  # Adjusting margin
                 
                 draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
                 
