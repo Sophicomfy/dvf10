@@ -54,18 +54,28 @@ def write_glyph_imgs_mp(opts):
             
             for charid in range(len(charset)):
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
+                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
                     print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}")
                     flag_success = False
                     break
-                if len(txt_lines) < 5: 
+                if len(txt_lines) < 5:
+                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}.")
                     flag_success = False
                     break
-                vbox_w = float(txt_lines[1])
-                vbox_h = float(txt_lines[2])
-                norm = max(int(vbox_w), int(vbox_h))
+                
+                try:
+                    vbox_w = float(txt_lines[1])
+                    vbox_h = float(txt_lines[2])
+                    norm = max(int(vbox_w), int(vbox_h))
+                    print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
+                
+                except ValueError as ve:
+                    print(f"Error parsing dimensions in file {txt_fpath}: {ve}")
+                    flag_success = False
+                    break
 
                 if int(vbox_h) > int(vbox_w):
                     add_to_y = 0
