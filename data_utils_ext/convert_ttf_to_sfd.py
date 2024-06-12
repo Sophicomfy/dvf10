@@ -63,11 +63,12 @@ def convert_mp(opts):
                     sfd_file_path = os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))
                     new_font_for_char.save(sfd_file_path)
 
+                    # Write to the char description file
                     char_description.write(f"{char}\n")
                     char_description.write(f"{new_font_for_char['A'].width}\n")
                     char_description.write(f"{new_font_for_char['A'].vwidth}\n")
                     char_description.write('{num:0{width}}\n'.format(num=char_id, width=charset_lenw))
-                    char_description.write('{}'.format(font_id))
+                    char_description.write(f"{font_id}\n")
 
                 except Exception as e:
                     print(f"Error processing character {char}: {e}")
