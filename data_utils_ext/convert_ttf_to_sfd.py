@@ -4,7 +4,6 @@ import multiprocessing as mp
 import data_preprocess_options
 
 def convert_mp(opts):
-    """Using multiprocessing to convert all fonts to sfd files"""
     with open(opts.charset_path, 'r') as f:
         charset = [line.strip() for line in f if line.strip()]
     charset_lenw = len(str(len(charset)))
