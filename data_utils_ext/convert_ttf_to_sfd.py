@@ -42,7 +42,6 @@ def convert_mp(opts):
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
-                # Default Unicode handling
                 if not char.startswith('uni'):
                     char = 'uni' + char.encode("unicode_escape")[2:].decode("utf-8")
                 
@@ -67,7 +66,7 @@ def convert_mp(opts):
                     char_description.write(f"{new_font_for_char['A'].width}\n")
                     char_description.write(f"{new_font_for_char['A'].vwidth}\n")
                     char_description.write('{num:0{width}}\n'.format(num=char_id, width=charset_lenw))
-                    char_description.write(f"{font_id}\n")
+                    char_description.write(f"{font_id}")
 
                 except Exception as e:
                     print(f"Error processing character {char}: {e}")
