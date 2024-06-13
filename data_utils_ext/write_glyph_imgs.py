@@ -6,6 +6,8 @@ import os
 import multiprocessing as mp
 import data_preprocess_options
 
+print("Current Working Directory:", os.getcwd())
+
 def get_bbox(img):
     img = 255 - np.array(img)
     sum_x = np.sum(img, axis=0)
@@ -17,7 +19,8 @@ def get_bbox(img):
     return width, height
 
 def write_glyph_imgs_mp(opts):
-    charset = open(opts.charset_path, 'r').read()
+    with open(opts.charset_path, 'r') as f:
+        charset = [line.strip() for line in f if line.strip()]
     fonts_file_path = opts.ttf_path
     sfd_path = opts.sfd_path
     for root, dirs, files in os.walk(fonts_file_path):
@@ -52,8 +55,9 @@ def write_glyph_imgs_mp(opts):
 
             flag_success = True
 
-            for charid in range(len(charset)):
+            for charid, char in enumerate(charset):
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
+                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:
@@ -69,7 +73,7 @@ def write_glyph_imgs_mp(opts):
                     vbox_w = float(txt_lines[1])
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
-                    # print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
+                    print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 except ValueError as ve:
                     print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
@@ -84,7 +88,6 @@ def write_glyph_imgs_mp(opts):
                     add_to_y = add_to_y * (float(opts.img_size) / norm)
                     add_to_x = 0
 
-                char = charset[charid]
                 array = np.ndarray((opts.img_size, opts.img_size), np.uint8)
                 array[:, :] = 255
                 image = Image.fromarray(array)
