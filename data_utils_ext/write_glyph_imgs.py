@@ -6,6 +6,8 @@ import os
 import multiprocessing as mp
 import data_preprocess_options
 
+print("Current Working Directory:", os.getcwd())
+
 def get_bbox(img):
     img = 255 - np.array(img)
     sum_x = np.sum(img, axis=0)
@@ -57,12 +59,12 @@ def write_glyph_imgs_mp(opts):
                 print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
-                except:
+                except Exception as e:
                     print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5:
-                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}. Error: {e}")
+                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}. ")
                     flag_success = False
                     break
                 
@@ -73,7 +75,7 @@ def write_glyph_imgs_mp(opts):
                     print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 
                 except ValueError as ve:
-                    print(f"Error parsing dimensions in file {txt_fpath}: {ve}. Error: {e}")
+                    print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
                     break
 
@@ -93,14 +95,14 @@ def write_glyph_imgs_mp(opts):
                 draw = ImageDraw.Draw(image)
                 try:
                     font_width, font_height = font.getsize(char)
-                except:
+                except Exception as e:
                     print(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
                 
                 try:
                     ascent, descent = font.getmetrics()
-                except:
+                except Exception as e:
                     print(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
