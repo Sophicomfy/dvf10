@@ -48,32 +48,30 @@ def write_glyph_imgs_mp(opts):
             except:
                 print(f"Can't open {ttf_file_path}")
                 continue
-                             
+
             fontimgs_array = np.zeros((len(charset), opts.img_size, opts.img_size), np.uint8)
             fontimgs_array[:, :, :] = 255
 
             flag_success = True
-            
+
             for charid in range(len(charset)):
-                txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:0{width}}'.format(num=charid, width=charset_lenw) + '.txt')
-                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
+                txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
                 try:
-                    txt_lines = open(txt_fpath,'r').read().split('\n')
+                    txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:
                     print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5:
-                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}. ")
+                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}.")
                     flag_success = False
                     break
-                
+
                 try:
                     vbox_w = float(txt_lines[1])
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
-                    print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
-                
+                    # print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 except ValueError as ve:
                     print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
@@ -99,19 +97,19 @@ def write_glyph_imgs_mp(opts):
                     print(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
-                
+
                 try:
                     ascent, descent = font.getmetrics()
                 except Exception as e:
                     print(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
-                
+
                 draw_pos_x = add_to_x + opts.margin
                 draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0)) + opts.margin
-                
+
                 draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
-                
+
                 if opts.debug:
                     image.save(os.path.join(sfd_path, fontname, str(charid) + '_' + str(opts.img_size) + '.png'))
 
@@ -120,11 +118,11 @@ def write_glyph_imgs_mp(opts):
                 except:
                     flag_success = False
                     break
-                
+
                 if (char_w < opts.img_size * 0.15) and (char_h < opts.img_size * 0.15):
                     flag_success = False
                     break
-                
+
                 fontimgs_array[charid] = np.array(image)
 
             if flag_success:
