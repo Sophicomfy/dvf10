@@ -58,11 +58,11 @@ def write_glyph_imgs_mp(opts):
                 try:
                     txt_lines = open(txt_fpath,'r').read().split('\n')
                 except:
-                    print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}")
+                    print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5:
-                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}.")
+                    print(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}. Error: {e}")
                     flag_success = False
                     break
                 
@@ -73,7 +73,7 @@ def write_glyph_imgs_mp(opts):
                     print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 
                 except ValueError as ve:
-                    print(f"Error parsing dimensions in file {txt_fpath}: {ve}")
+                    print(f"Error parsing dimensions in file {txt_fpath}: {ve}. Error: {e}")
                     flag_success = False
                     break
 
@@ -94,14 +94,14 @@ def write_glyph_imgs_mp(opts):
                 try:
                     font_width, font_height = font.getsize(char)
                 except:
-                    print(f"Can't calculate height and width for charid {charid} in font {fontname}")
+                    print(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
                 
                 try:
                     ascent, descent = font.getmetrics()
                 except:
-                    print(f"Cannot get ascent, descent for charid {charid} in font {fontname}")
+                    print(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
                 
