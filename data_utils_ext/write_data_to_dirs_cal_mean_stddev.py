@@ -5,7 +5,7 @@ import svg_utils
 
 def cal_mean_stddev(opts, output_path):
     print("Calculating all glyphs' mean stddev ....")
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r', encoding="utf-8").read()
+    charset = open(opts.charset_path, 'r', encoding="utf-8").read()
     font_paths = []
     for root, dirs, files in os.walk(output_path):
         for dir_name in dirs:
@@ -45,11 +45,8 @@ def cal_mean_stddev(opts, output_path):
     stdev = output['stddev']
     mean = np.concatenate((np.zeros([4]), mean[4:]), axis=0)
     stdev = np.concatenate((np.ones([4]), stdev[4:]), axis=0)
-    # finally, save the mean and stddev files
-    output_path_ = os.path.join(opts.output_path, opts.language)
+    output_path_ = os.path.join(opts.output_path)
     np.save(os.path.join(output_path_, 'mean'), mean)
     np.save(os.path.join(output_path_, 'stdev'), stdev)
-
-    # rename npy to npz, don't mind about it, just some legacy issue 
     os.rename(os.path.join(output_path_, 'mean.npy'), os.path.join(output_path_, 'mean.npz'))
     os.rename(os.path.join(output_path_, 'stdev.npy'), os.path.join(output_path_, 'stdev.npz'))

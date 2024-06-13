@@ -6,13 +6,13 @@ from write_data_to_dirs_utils import exist_empty_imgs
 from write_data_to_dirs_log import log_progress
 
 def create_db(opts, output_path, log_path):
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r', encoding="utf-8").read()
+    charset = open(opts.charset_path, 'r', encoding="utf-8").read()
     print("Process sfd to npy files in dirs....")
-    sdf_path = os.path.join(opts.sfd_path, opts.language, opts.split)
+    sdf_path = opts.sfd_path
     all_font_ids = sorted(os.listdir(sdf_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
-    print(f"Number {opts.split} fonts before processing", num_fonts)
+    print(f"Number of fonts before processing", num_fonts)
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(charset)
@@ -20,7 +20,7 @@ def create_db(opts, output_path, log_path):
     processed_fonts = mp.Value('i', 0)  # Shared variable to count processed fonts
 
     def process(process_id):
-        cur_process_log_file = open(os.path.join(log_path, f'log_{opts.split}_{process_id}.txt'), 'w')
+        cur_process_log_file = open(os.path.join(log_path, f'log_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
