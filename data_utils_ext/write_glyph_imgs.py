@@ -57,7 +57,6 @@ def write_glyph_imgs_mp(opts):
 
             for charid, char in enumerate(charset):
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
-                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:
@@ -73,7 +72,6 @@ def write_glyph_imgs_mp(opts):
                     vbox_w = float(txt_lines[1])
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
-                    print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 except ValueError as ve:
                     print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
