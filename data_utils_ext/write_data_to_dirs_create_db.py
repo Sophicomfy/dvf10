@@ -17,17 +17,14 @@ def create_db(opts, output_path, log_path):
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(charset)
     num_chars_w = len(str(num_chars))
-    processed_fonts = mp.Value('i', 0)  # Shared variable to count processed fonts
-
+    processed_fonts = mp.Value('i', 0)  
+    
     def process(process_id):
-        worker_name = f"worker_{process_id}"
         cur_process_log_file = open(os.path.join(log_path, f'log_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
             font_id = all_font_ids[i]
-            fontname = font_id.split('.')[0]
-            print(f"Processing {fontname} by {worker_name}")
             cur_font_sfd_dir = os.path.join(sdf_path, font_id)
             cur_font_glyphs = []
 
