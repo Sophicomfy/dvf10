@@ -6,6 +6,8 @@ import os
 import multiprocessing as mp
 import data_preprocess_options
 
+print("Current Working Directory:", os.getcwd())
+
 def get_bbox(img):
     img = 255 - np.array(img)
     sum_x = np.sum(img, axis=0)
@@ -29,7 +31,12 @@ def write_glyph_imgs_mp(opts):
     process_nums = min(opts.workers, mp.cpu_count() - 1)
     font_num_per_process = font_num // process_nums + 1
 
+    print(f"Fonts to process: {font_num}")
+
+    processed_fonts = mp.Value('i', 0)
+
     def process(process_id, font_num_p_process):
+        nonlocal processed_fonts
         worker_name = f"worker_{process_id}"
         for i in range(process_id * font_num_p_process, (process_id + 1) * font_num_p_process):
             if i >= font_num:
@@ -55,6 +62,7 @@ def write_glyph_imgs_mp(opts):
 
             for charid, char in enumerate(charset):
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
+                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:
@@ -70,6 +78,7 @@ def write_glyph_imgs_mp(opts):
                     vbox_w = float(txt_lines[1])
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
+                    print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 except ValueError as ve:
                     print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
@@ -124,6 +133,8 @@ def write_glyph_imgs_mp(opts):
 
             if flag_success:
                 np.save(os.path.join(sfd_path, fontname, 'imgs_' + str(opts.img_size) + '.npy'), fontimgs_array)
+                with processed_fonts.get_lock():
+                    processed_fonts.value += 1
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_nums)]
 
@@ -131,6 +142,8 @@ def write_glyph_imgs_mp(opts):
         p.start()
     for p in processes:
         p.join()
+
+    print(f"Processed fonts: {font_num}/{processed_fonts.value}")
 
 def main():
     parser = data_preprocess_options.get_data_preprocess_options()
