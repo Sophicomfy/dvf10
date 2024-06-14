@@ -6,8 +6,6 @@ import os
 import multiprocessing as mp
 import data_preprocess_options
 
-print("Current Working Directory:", os.getcwd())
-
 def get_bbox(img):
     img = 255 - np.array(img)
     sum_x = np.sum(img, axis=0)
