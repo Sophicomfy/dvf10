@@ -17,7 +17,7 @@ def create_db(opts, output_path, log_path):
     with open(opts.charset_path, 'r') as f:
         charset = [line.strip() for line in f if line.strip()]
     print("Process sfd to npy files in dirs....")
-    sdf_path = os.path.join(opts.sfd_path, opts.language, opts.split)
+    sfd_path = opts.sfd_path
     all_font_ids = sorted(os.listdir(sdf_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
@@ -182,7 +182,7 @@ def main():
     parser.add_argument('--charset_path', default='./charset/charset.txt/', help='Path to charset.txt file')
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
     parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
-    parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
+    parser.add_argument('--sfd_path', type=str, default='./data/sfds/', help='Path to save SFD font files')
     parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset_/', help="Path to write the database to")
     parser.add_argument('--img_size', type=int, default=64, help="the height and width of glyph images")
     parser.add_argument("--split", type=str, default='train')
