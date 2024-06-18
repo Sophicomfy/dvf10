@@ -32,7 +32,6 @@ def create_db(opts, output_path, log_path):
                 continue
 
             for char_id in range(num_chars):
-                print(char_id)
                 if not os.path.exists(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))):
                     break
 
