@@ -14,7 +14,8 @@ def exist_empty_imgs(imgs_array, num_chars):
     return False
 
 def create_db(opts, output_path, log_path):
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    with open(opts.charset_path, 'r') as f:
+        charset = [line.strip() for line in f if line.strip()]
     print("Process sfd to npy files in dirs....")
     sdf_path = os.path.join(opts.sfd_path, opts.language, opts.split)
     all_font_ids = sorted(os.listdir(sdf_path))
@@ -178,6 +179,7 @@ def cal_mean_stddev(opts, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description="LMDB creation")
+    parser.add_argument('--charset_path', default='./charset/charset.txt/', help='Path to charset.txt file')
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
     parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
     parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
