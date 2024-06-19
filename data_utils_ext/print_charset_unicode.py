@@ -3,7 +3,7 @@ import sys
 import getopt
 
 def usage():
-    print("Usage: fontforge -script print_charset.pe --font /path/to/font/file.ttf --glyph uni|id|charname|char")
+    print("Usage: fontforge -script print_charset_unicode.pe --font /path/to/font/file.ttf --glyph uni|id|charname|char")
     sys.exit(2)
 
 def main(argv):
@@ -36,7 +36,7 @@ def main(argv):
         if glyph.unicode != -1:  # Only consider glyphs with valid Unicode values
             output = []
             if "uni" in glyph_types: # Unicode Identifier
-                output.append(f"U{glyph.unicode:04X}")
+                output.append(f"uni{glyph.unicode:04X}")
             if "id" in glyph_types: # Decimal Value
                 output.append(str(glyph.unicode))
             if "charname" in glyph_types: # Character Name
@@ -44,7 +44,6 @@ def main(argv):
             if "char" in glyph_types: # Character
                 output.append(chr(glyph.unicode))
             print(", ".join(output))
-    print()  # For a new line at the end
 
     # Close the font file
     font.close()
