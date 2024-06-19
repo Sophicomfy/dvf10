@@ -35,13 +35,13 @@ def main(argv):
     for glyph in glyphs:
         if glyph.unicode != -1:  # Only consider glyphs with valid Unicode values
             output = []
-            if "uni" in glyph_types:
+            if "uni" in glyph_types: # Unicode Identifier
                 output.append(f"U{glyph.unicode:04X}")
-            if "id" in glyph_types:
+            if "id" in glyph_types: # Decimal Value
                 output.append(str(glyph.unicode))
-            if "charname" in glyph_types:
+            if "charname" in glyph_types: # Character Name
                 output.append(glyph.glyphname)
-            if "char" in glyph_types:
+            if "char" in glyph_types: # Character
                 output.append(chr(glyph.unicode))
             print(", ".join(output))
     print()  # For a new line at the end
