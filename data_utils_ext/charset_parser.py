@@ -1,9 +1,13 @@
 # charset_parser.py
 import data_preprocess_options
+import os
 
 def parse_charset(charset_path, char_type):
     parsed_data = []
     try:
+        # Check if the provided path is relative or absolute
+        charset_path = os.path.abspath(charset_path) if not os.path.isabs(charset_path) else charset_path
+        
         with open(charset_path, 'r') as file:
             for line in file:
                 parts = line.strip().split(', ')
