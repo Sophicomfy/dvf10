@@ -2,10 +2,11 @@ import fontforge  # noqa
 import os
 import multiprocessing as mp
 import data_preprocess_options
+import charset_parser
 
 def convert_mp(opts):
-    with open(opts.charset_path, 'r') as f:
-        charset = [line.strip() for line in f if line.strip()]
+    # Use charset_parser to load and parse the charset file
+    charset = charset_parser.parse_charset(opts.charset_path, opts.char_type)
     charset_lenw = len(str(len(charset)))
     fonts_file_path = opts.ttf_path
     sfd_path = opts.sfd_path
@@ -42,9 +43,6 @@ def convert_mp(opts):
             for char_id, char in enumerate(charset):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
-                if not char.startswith('uni'):
-                    char = 'uni' + char.encode("unicode_escape")[2:].decode("utf-8")
-                
                 try:
                     cur_font.selection.select(char)
                     cur_font.copy()
