@@ -28,6 +28,7 @@ def parse_charset(charset_path, char_type):
     except Exception as e:
         print(f"Error: {e}")
     
+    print(parsed_data)
     return parsed_data
 
 def main():
@@ -36,8 +37,8 @@ def main():
 
     parsed_data = parse_charset(opts.charset_path, opts.char_type)
 
-    for data in parsed_data:
-        print(data)
+    # for data in parsed_data:
+    #     print(data)
 
 if __name__ == "__main__":
     main()
