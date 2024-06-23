@@ -28,7 +28,7 @@ def parse_charset(charset_path, char_type):
     except Exception as e:
         print(f"Error: {e}")
     
-    print(parsed_data)
+    # print(parsed_data)
     return parsed_data
 
 def main():

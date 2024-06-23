@@ -44,12 +44,9 @@ def convert_mp(opts):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
                 try:
-                    if opts.char_type == 'all':
-                        unicode_char = char[0]
-                        decimal_char = char[1]
-                    else:
-                        unicode_char = char
-                        decimal_char = str(ord(char))
+                    unicode_char = char[0]
+                    decimal_char = char[1]
+                    glyph_name = char[2]
 
                     cur_font.selection.select(unicode_char)
                     cur_font.copy()
@@ -65,6 +62,14 @@ def convert_mp(opts):
 
                     sfd_file_path = os.path.join(target_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=charset_lenw))
                     new_font_for_char.save(sfd_file_path)
+
+                    # Set StartChar and Encoding
+                    with open(sfd_file_path, 'r') as file:
+                        sfd_content = file.read()
+                    sfd_content = sfd_content.replace("StartChar: A", f"StartChar: {glyph_name}")
+                    sfd_content = sfd_content.replace("Encoding: 65 65 0", f"Encoding: {decimal_char} {decimal_char} 0")
+                    with open(sfd_file_path, 'w') as file:
+                        file.write(sfd_content)
 
                     # Write to the char description file
                     char_description.write(f"{decimal_char}\n")
