@@ -44,7 +44,14 @@ def convert_mp(opts):
                 char_description = open(os.path.join(target_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=charset_lenw)), 'w')
 
                 try:
-                    cur_font.selection.select(char)
+                    if opts.char_type == 'all':
+                        unicode_char = char[0]
+                        decimal_char = char[1]
+                    else:
+                        unicode_char = char
+                        decimal_char = str(ord(char))
+
+                    cur_font.selection.select(unicode_char)
                     cur_font.copy()
 
                     new_font_for_char = fontforge.font()
@@ -60,7 +67,7 @@ def convert_mp(opts):
                     new_font_for_char.save(sfd_file_path)
 
                     # Write to the char description file
-                    char_description.write(f"{char}\n")
+                    char_description.write(f"{decimal_char}\n")
                     char_description.write(f"{new_font_for_char['A'].width}\n")
                     char_description.write(f"{new_font_for_char['A'].vwidth}\n")
                     char_description.write('{num:0{width}}\n'.format(num=char_id, width=charset_lenw))
