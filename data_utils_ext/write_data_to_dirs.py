@@ -174,7 +174,7 @@ def main():
     assert os.path.exists(opts.sfd_path), "specified sfd glyphs path does not exist"
 
     output_path = opts.output_path
-    log_path = os.path.join(opts.sfd_path, 'log')
+    log_path = os.path.join('../logs/', 'write_data_to_dirs_log')
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
