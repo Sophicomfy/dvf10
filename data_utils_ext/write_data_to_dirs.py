@@ -21,14 +21,14 @@ def create_db(opts, output_path, log_path):
     all_font_ids = sorted(os.listdir(sfd_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
-    print(f"Number {opts.split} fonts before processing", num_fonts)
+    print(f"Number of fonts before processing: {num_fonts}")
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(charset)
     num_chars_w = len(str(num_chars))
 
     def process(process_id):
-        cur_process_log_file = open(os.path.join(log_path, f'log_{opts.split}_{process_id}.txt'), 'w')
+        cur_process_log_file = open(os.path.join(log_path, f'log_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
@@ -39,7 +39,6 @@ def create_db(opts, output_path, log_path):
             if not os.path.exists(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')):
                 continue
             
-            # a whole font as an entry
             for char_id in range(num_chars):
                 print(char_id)
                 if not os.path.exists(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))):
@@ -69,7 +68,6 @@ def create_db(opts, output_path, log_path):
                     cur_process_log_file.write(msg)
                     char_desp_f.close()
                     sfd_f.close()
-                    # use the font whose all glyphs are valid
                     break
                 pathunibfp = svg_utils.convert_to_path(cur_glyph)
 
@@ -87,14 +85,11 @@ def create_db(opts, output_path, log_path):
                 sfd_f.close()
             
             if len(cur_font_glyphs) == num_chars:
-                # use the font whose all glyphs are valid
-                # merge the whole font
-
                 rendered = np.load(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy'))
 
                 if (rendered[0] == rendered[1]).all() == True:
                     continue
- 
+
                 sequence = []
                 seq_len = []
                 binaryfp = []
@@ -126,7 +121,7 @@ def create_db(opts, output_path, log_path):
 
 def cal_mean_stddev(opts, output_path):
     print("Calculating all glyphs' mean stddev ....")
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    charset = open(opts.charset_path, 'r').read()
     font_paths = []
     for root, dirs, files in os.walk(output_path):
         for dir_name in dirs:
@@ -166,12 +161,10 @@ def cal_mean_stddev(opts, output_path):
     stdev = output['stddev']
     mean = np.concatenate((np.zeros([4]), mean[4:]), axis=0)
     stdev = np.concatenate((np.ones([4]), stdev[4:]), axis=0)
-    # finally, save the mean and stddev files
-    output_path_ = os.path.join(opts.output_path, opts.language)
+    output_path_ = opts.output_path
     np.save(os.path.join(output_path_, 'mean'), mean)
     np.save(os.path.join(output_path_, 'stdev'), stdev)
 
-    # rename npy to npz, don't mind about it, just some legacy issue 
     os.rename(os.path.join(output_path_, 'mean.npy'), os.path.join(output_path_, 'mean.npz'))
     os.rename(os.path.join(output_path_, 'stdev.npy'), os.path.join(output_path_, 'stdev.npz'))
 
@@ -180,8 +173,8 @@ def main():
     opts = parser.parse_args()
     assert os.path.exists(opts.sfd_path), "specified sfd glyphs path does not exist"
 
-    output_path = os.path.join(opts.output_path, opts.language, opts.split)
-    log_path = os.path.join(opts.sfd_path, opts.language, 'log')
+    output_path = opts.output_path
+    log_path = os.path.join(opts.sfd_path, 'log')
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -192,7 +185,7 @@ def main():
     if opts.phase <= 1:
         create_db(opts, output_path, log_path)
 
-    if opts.phase <= 2 and opts.split == 'train':
+    if opts.phase <= 2:
         cal_mean_stddev(opts, output_path)
     
 if __name__ == "__main__":
