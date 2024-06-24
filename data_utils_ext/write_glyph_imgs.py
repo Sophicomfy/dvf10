@@ -5,6 +5,7 @@ import numpy as np
 import os
 import multiprocessing as mp
 import data_preprocess_options
+import charset_parser
 import logging
 
 # Set up logging
@@ -26,8 +27,7 @@ def get_bbox(img):
     return width, height
 
 def write_glyph_imgs_mp(opts):
-    with open(opts.charset_path, 'r') as f:
-        charset = [line.strip() for line in f if line.strip()]
+    charset = charset_parser.parse_charset(opts.charset_path, opts.char_type)
     fonts_file_path = opts.ttf_path
     sfd_path = opts.sfd_path
     for root, dirs, files in os.walk(fonts_file_path):
@@ -68,6 +68,7 @@ def write_glyph_imgs_mp(opts):
             flag_success = True
 
             for charid, char in enumerate(charset):
+                char_value = char[3]
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
                 print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
@@ -87,7 +88,7 @@ def write_glyph_imgs_mp(opts):
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
                     logging.info(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
-                    # print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
+                    # print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm} of font {fontname} | {txt_fpath}")
                 except ValueError as ve:
                     logging.info(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     # print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
@@ -108,7 +109,7 @@ def write_glyph_imgs_mp(opts):
                 image = Image.fromarray(array)
                 draw = ImageDraw.Draw(image)
                 try:
-                    font_width, font_height = font.getsize(char)
+                    font_width, font_height = font.getsize(char_value)
                 except Exception as e:
                     logging.info(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
                     # print(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
@@ -126,7 +127,7 @@ def write_glyph_imgs_mp(opts):
                 draw_pos_x = add_to_x + opts.margin
                 draw_pos_y = add_to_y + opts.img_size - ascent - int((opts.img_size / 24.0) * (4.0 / 3.0)) + opts.margin
 
-                draw.text((draw_pos_x, draw_pos_y), char, (0), font=font)
+                draw.text((draw_pos_x, draw_pos_y), char_value, (0), font=font)
 
                 if opts.debug:
                     image.save(os.path.join(sfd_path, fontname, str(charid) + '_' + str(opts.img_size) + '.png'))
