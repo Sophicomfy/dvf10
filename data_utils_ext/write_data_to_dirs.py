@@ -14,31 +14,33 @@ def exist_empty_imgs(imgs_array, num_chars):
     return False
 
 def create_db(opts, output_path, log_path):
-    with open(opts.charset_path, 'r') as f:
-        charset = [line.strip() for line in f if line.strip()]
+    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
     print("Process sfd to npy files in dirs....")
-    sfd_path = opts.sfd_path
-    all_font_ids = sorted(os.listdir(sfd_path))
+    sdf_path = os.path.join(opts.sfd_path, opts.language, opts.split)
+    all_font_ids = sorted(os.listdir(sdf_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
-    print(f"Number of fonts before processing: {num_fonts}")
+    print(f"Number {opts.split} fonts before processing", num_fonts)
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(charset)
     num_chars_w = len(str(num_chars))
 
+
     def process(process_id):
-        cur_process_log_file = open(os.path.join(log_path, f'log_{process_id}.txt'), 'w')
+
+        cur_process_log_file = open(os.path.join(log_path, f'log_{opts.split}_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
             font_id = all_font_ids[i]
-            cur_font_sfd_dir = os.path.join(sfd_path, font_id)
+            cur_font_sfd_dir = os.path.join(sdf_path, font_id)
             cur_font_glyphs = []
 
             if not os.path.exists(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')):
                 continue
             
+            # a whole font as an entry
             for char_id in range(num_chars):
                 print(char_id)
                 if not os.path.exists(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))):
@@ -68,6 +70,7 @@ def create_db(opts, output_path, log_path):
                     cur_process_log_file.write(msg)
                     char_desp_f.close()
                     sfd_f.close()
+                    # use the font whose all glyphs are valid
                     break
                 pathunibfp = svg_utils.convert_to_path(cur_glyph)
 
@@ -85,6 +88,9 @@ def create_db(opts, output_path, log_path):
                 sfd_f.close()
             
             if len(cur_font_glyphs) == num_chars:
+                # use the font whose all glyphs are valid
+                # merge the whole font
+
                 rendered = np.load(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy'))
 
                 if (rendered[0] == rendered[1]).all() == True:
@@ -118,10 +124,10 @@ def create_db(opts, output_path, log_path):
 
     print("Finished processing all sfd files, logs (invalid glyphs and paths) are saved to", log_path)
 
+
 def cal_mean_stddev(opts, output_path):
     print("Calculating all glyphs' mean stddev ....")
-    with open(opts.charset_path, 'r') as f:
-        charset = [line.strip() for line in f if line.strip()]
+    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
     font_paths = []
     for root, dirs, files in os.walk(output_path):
         for dir_name in dirs:
@@ -130,7 +136,7 @@ def cal_mean_stddev(opts, output_path):
     num_fonts = len(font_paths)
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
-    num_chars = len(charset)
+    num_chars = len(charset) 
     manager = mp.Manager()
     return_dict = manager.dict()
     main_stddev_accum = svg_utils.MeanStddev()
@@ -161,27 +167,32 @@ def cal_mean_stddev(opts, output_path):
     stdev = output['stddev']
     mean = np.concatenate((np.zeros([4]), mean[4:]), axis=0)
     stdev = np.concatenate((np.ones([4]), stdev[4:]), axis=0)
-    output_path_ = opts.output_path
+    # finally, save the mean and stddev files
+    output_path_ = os.path.join(opts.output_path, opts.language)
     np.save(os.path.join(output_path_, 'mean'), mean)
     np.save(os.path.join(output_path_, 'stdev'), stdev)
+
+    # rename npy to npz, don't mind about it, just some legacy issue 
     os.rename(os.path.join(output_path_, 'mean.npy'), os.path.join(output_path_, 'mean.npz'))
     os.rename(os.path.join(output_path_, 'stdev.npy'), os.path.join(output_path_, 'stdev.npz'))
 
 def main():
     parser = argparse.ArgumentParser(description="LMDB creation")
-    parser.add_argument('--charset_path', default='./charset/charset.txt', help='Path to charset.txt file')
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
-    parser.add_argument('--sfd_path', type=str, default='./data/sfds/', help='Path to save SFD font files')
-    parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset/', help="Path to write the database to")
+    parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
+    parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
+    parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset_/', help="Path to write the database to")
     parser.add_argument('--img_size', type=int, default=64, help="the height and width of glyph images")
     parser.add_argument("--split", type=str, default='train')
-    parser.add_argument("--phase", type=int, default=0, choices=[0, 1, 2], help="0 all, 1 create db, 2 cal stddev")
+    # parser.add_argument("--log_dir", type=str, default='../data/font_sfds/log/')
+    parser.add_argument("--phase", type=int, default=0, choices=[0, 1, 2],
+                        help="0 all, 1 create db, 2 cal stddev")
 
     opts = parser.parse_args()
     assert os.path.exists(opts.sfd_path), "specified sfd glyphs path does not exist"
 
-    output_path = os.path.join(opts.output_path, opts.split)
-    log_path = os.path.join(opts.sfd_path, 'log')
+    output_path = os.path.join(opts.output_path, opts.language, opts.split)
+    log_path = os.path.join(opts.sfd_path, opts.language, 'log')
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
@@ -195,5 +206,6 @@ def main():
     if opts.phase <= 2 and opts.split == 'train':
         cal_mean_stddev(opts, output_path)
 
+    
 if __name__ == "__main__":
     main()
