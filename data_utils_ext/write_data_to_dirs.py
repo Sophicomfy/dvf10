@@ -21,14 +21,14 @@ def create_db(opts, output_path, log_path):
     all_font_ids = sorted(os.listdir(sfd_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
-    print(f"Number {opts.split} fonts before processing", num_fonts)
+    print(f"Number of fonts before processing: {num_fonts}")
     num_processes = mp.cpu_count() - 2
     fonts_per_process = num_fonts // num_processes + 1
     num_chars = len(charset)
     num_chars_w = len(str(num_chars))
 
     def process(process_id):
-        cur_process_log_file = open(os.path.join(log_path, f'log_{opts.split}_{process_id}.txt'), 'w')
+        cur_process_log_file = open(os.path.join(log_path, f'log_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
@@ -161,7 +161,7 @@ def cal_mean_stddev(opts, output_path):
     stdev = output['stddev']
     mean = np.concatenate((np.zeros([4]), mean[4:]), axis=0)
     stdev = np.concatenate((np.ones([4]), stdev[4:]), axis=0)
-    output_path_ = os.path.join(opts.output_path, opts.language)
+    output_path_ = opts.output_path
     np.save(os.path.join(output_path_, 'mean'), mean)
     np.save(os.path.join(output_path_, 'stdev'), stdev)
     os.rename(os.path.join(output_path_, 'mean.npy'), os.path.join(output_path_, 'mean.npz'))
@@ -169,7 +169,7 @@ def cal_mean_stddev(opts, output_path):
 
 def main():
     parser = argparse.ArgumentParser(description="LMDB creation")
-    parser.add_argument('--charset_path', default='./charset/charset.txt/', help='Path to charset.txt file')
+    parser.add_argument('--charset_path', default='./charset/charset.txt', help='Path to charset.txt file')
     parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
     parser.add_argument('--sfd_path', type=str, default='./data/sfds/', help='Path to save SFD font files')
     parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset/', help="Path to write the database to")
@@ -180,8 +180,8 @@ def main():
     opts = parser.parse_args()
     assert os.path.exists(opts.sfd_path), "specified sfd glyphs path does not exist"
 
-    output_path = os.path.join(opts.output_path, opts.language, opts.split)
-    log_path = os.path.join(opts.sfd_path, opts.language, 'log')
+    output_path = os.path.join(opts.output_path, opts.split)
+    log_path = os.path.join(opts.sfd_path, 'log')
 
     if not os.path.exists(output_path):
         os.makedirs(output_path)
