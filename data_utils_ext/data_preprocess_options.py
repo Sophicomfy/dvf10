@@ -13,6 +13,8 @@ def get_data_preprocess_options():
     parser.add_argument('--margin', type=int, default=0, help='Margin for character bounding box')
     parser.add_argument('--phase', type=int, default=0, choices=[0, 1, 2], help='0 all, 1 create db, 2 cal stddev')
     parser.add_argument('--debug', type=bool, default=False, help='Enable debug mode')
+    parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
+    parser.add_argument("--split", type=str, default='train')
     return parser
 
 if __name__ == "__main__":
