@@ -70,7 +70,7 @@ def write_glyph_imgs_mp(opts):
             for charid, char in enumerate(charset):
                 char_value = char[3]
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
-                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
+                # print(f"Trying to read file: {txt_fpath}")
                 try:
                     txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:

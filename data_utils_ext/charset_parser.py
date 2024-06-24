@@ -5,7 +5,6 @@ import os
 def parse_charset(charset_path, char_type):
     parsed_data = []
     try:
-        # Check if the provided path is relative or absolute
         charset_path = os.path.abspath(charset_path) if not os.path.isabs(charset_path) else charset_path
         
         with open(charset_path, 'r') as file:
@@ -22,7 +21,7 @@ def parse_charset(charset_path, char_type):
                     elif char_type == 'char':
                         parsed_data.append(char)
                     else:
-                        parsed_data.append(parts)  # default: return the entire row
+                        parsed_data.append(parts)
     except FileNotFoundError:
         print(f"Error: The file {charset_path} does not exist.")
     except Exception as e:
@@ -36,9 +35,6 @@ def main():
     opts = parser.parse_args()
 
     parsed_data = parse_charset(opts.charset_path, opts.char_type)
-
-    # for data in parsed_data:
-    #     print(data)
 
 if __name__ == "__main__":
     main()

@@ -5,7 +5,6 @@ import data_preprocess_options
 import charset_parser
 
 def convert_mp(opts):
-    # Use charset_parser to load and parse the charset file
     charset = charset_parser.parse_charset(opts.charset_path, opts.char_type)
     charset_lenw = len(str(len(charset)))
     fonts_file_path = opts.ttf_path
