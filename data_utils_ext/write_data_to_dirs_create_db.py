@@ -35,7 +35,6 @@ def create_db(opts, output_path, log_path):
             print(f"Processing {imgs_path} by worker_{process_id}")
 
             for char_id in range(num_chars):
-                print(char_id)
                 sfd_file = os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))
                 if not os.path.exists(sfd_file):
                     print(f"File {sfd_file} not found")
