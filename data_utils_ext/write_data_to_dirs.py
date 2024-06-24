@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 import svg_utils
 import data_preprocess_options
+import charset_parser
 
 def exist_empty_imgs(imgs_array, num_chars):
     for char_id in range(num_chars):
@@ -14,8 +15,7 @@ def exist_empty_imgs(imgs_array, num_chars):
     return False
 
 def create_db(opts, output_path, log_path):
-    with open(opts.charset_path, 'r') as f:
-        charset = [line.strip() for line in f if line.strip()]
+    charset = charset_parser.parse_charset(opts.charset_path, 'all')
     print("Process sfd to npy files in dirs....")
     sfd_path = opts.sfd_path
     all_font_ids = sorted(os.listdir(sfd_path))
@@ -98,7 +98,7 @@ def create_db(opts, output_path, log_path):
                     example = cur_font_glyphs[char_id]
                     sequence.append(example['sequence'])
                     seq_len.append(example['seq_len'])
-                    char_class.append(example['class'])
+                    char_class.append(example['class'])  # char_name
                     binaryfp = example['binary_fp']
                 if not os.path.exists(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w))):
                     os.mkdir(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w)))
@@ -121,7 +121,7 @@ def create_db(opts, output_path, log_path):
 
 def cal_mean_stddev(opts, output_path):
     print("Calculating all glyphs' mean stddev ....")
-    charset = open(opts.charset_path, 'r').read()
+    charset = charset_parser.parse_charset(opts.charset_path, 'all')
     font_paths = []
     for root, dirs, files in os.walk(output_path):
         for dir_name in dirs:
