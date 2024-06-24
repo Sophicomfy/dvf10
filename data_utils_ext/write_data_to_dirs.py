@@ -1,9 +1,9 @@
-import argparse
 import multiprocessing as mp
 import os
 import pickle
 import numpy as np
 import svg_utils
+import data_preprocess_options
 
 def exist_empty_imgs(imgs_array, num_chars):
     for char_id in range(num_chars):
@@ -14,10 +14,11 @@ def exist_empty_imgs(imgs_array, num_chars):
     return False
 
 def create_db(opts, output_path, log_path):
-    charset = open(f"../data/char_set/{opts.language}.txt", 'r').read()
+    with open(opts.charset_path, 'r') as f:
+        charset = [line.strip() for line in f if line.strip()]
     print("Process sfd to npy files in dirs....")
-    sdf_path = os.path.join(opts.sfd_path, opts.language, opts.split)
-    all_font_ids = sorted(os.listdir(sdf_path))
+    sfd_path = opts.sfd_path
+    all_font_ids = sorted(os.listdir(sfd_path))
     num_fonts = len(all_font_ids)
     num_fonts_w = len(str(num_fonts))
     print(f"Number {opts.split} fonts before processing", num_fonts)
@@ -26,15 +27,13 @@ def create_db(opts, output_path, log_path):
     num_chars = len(charset)
     num_chars_w = len(str(num_chars))
 
-
     def process(process_id):
-
         cur_process_log_file = open(os.path.join(log_path, f'log_{opts.split}_{process_id}.txt'), 'w')
         for i in range(process_id * fonts_per_process, (process_id + 1) * fonts_per_process):
             if i >= num_fonts:
                 break
             font_id = all_font_ids[i]
-            cur_font_sfd_dir = os.path.join(sdf_path, font_id)
+            cur_font_sfd_dir = os.path.join(sfd_path, font_id)
             cur_font_glyphs = []
 
             if not os.path.exists(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')):
@@ -177,17 +176,7 @@ def cal_mean_stddev(opts, output_path):
     os.rename(os.path.join(output_path_, 'stdev.npy'), os.path.join(output_path_, 'stdev.npz'))
 
 def main():
-    parser = argparse.ArgumentParser(description="LMDB creation")
-    parser.add_argument("--language", type=str, default='eng', choices=['eng', 'chn'])
-    parser.add_argument("--ttf_path", type=str, default='../data/font_ttfs')
-    parser.add_argument('--sfd_path', type=str, default='../data/font_sfds')
-    parser.add_argument("--output_path", type=str, default='../data/vecfont_dataset_/', help="Path to write the database to")
-    parser.add_argument('--img_size', type=int, default=64, help="the height and width of glyph images")
-    parser.add_argument("--split", type=str, default='train')
-    # parser.add_argument("--log_dir", type=str, default='../data/font_sfds/log/')
-    parser.add_argument("--phase", type=int, default=0, choices=[0, 1, 2],
-                        help="0 all, 1 create db, 2 cal stddev")
-
+    parser = data_preprocess_options.get_data_preprocess_options()
     opts = parser.parse_args()
     assert os.path.exists(opts.sfd_path), "specified sfd glyphs path does not exist"
 
@@ -205,7 +194,6 @@ def main():
 
     if opts.phase <= 2 and opts.split == 'train':
         cal_mean_stddev(opts, output_path)
-
     
 if __name__ == "__main__":
     main()
