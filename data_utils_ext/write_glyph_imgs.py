@@ -7,8 +7,13 @@ import multiprocessing as mp
 import data_preprocess_options
 import logging
 
+# Set up logging
+log_dir = "../logs"
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+logging.basicConfig(filename=os.path.join(log_dir, 'write_glyph_imgs.log'), level=logging.INFO)
 
-logging.basicConfig(filename='glyph_imgs.log', level=logging.INFO)
+print("Current Working Directory:", os.getcwd())
 
 def get_bbox(img):
     img = 255 - np.array(img)
@@ -46,7 +51,7 @@ def write_glyph_imgs_mp(opts):
 
             fontname = ttf_names[i].split('.')[0]
             ttf_file_path = os.path.join(fonts_file_path, ttf_names[i])
-            # print(f"Processing {ttf_file_path} by worker {worker_name}")
+            print(f"Processing {ttf_file_path} by worker {worker_name}")
 
             if not os.path.exists(os.path.join(sfd_path, fontname)):
                 continue
@@ -64,14 +69,16 @@ def write_glyph_imgs_mp(opts):
 
             for charid, char in enumerate(charset):
                 txt_fpath = os.path.join(sfd_path, fontname, fontname + '_' + '{num:03d}'.format(num=charid) + '.txt')
+                print(f"Trying to read file: {txt_fpath}")  # Debugging statement
                 try:
                     txt_lines = open(txt_fpath, 'r').read().split('\n')
                 except Exception as e:
-                    logging.error(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
+                    logging.info(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
+                    # print(f"Cannot read text file: {txt_fpath} for charid: {charid} font: {fontname}. Error: {e}")
                     flag_success = False
                     break
                 if len(txt_lines) < 5:
-                    logging.error(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}.")
+                    logging.info(f"File {txt_fpath} does not contain enough lines. Expected 5, got {len(txt_lines)}.")
                     flag_success = False
                     break
 
@@ -80,8 +87,10 @@ def write_glyph_imgs_mp(opts):
                     vbox_h = float(txt_lines[2])
                     norm = max(int(vbox_w), int(vbox_h))
                     logging.info(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
+                    # print(f"vbox_w: {vbox_w}, vbox_h: {vbox_h}, norm: {norm}")
                 except ValueError as ve:
-                    logging.error(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
+                    logging.info(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
+                    # print(f"Error parsing dimensions in file {txt_fpath}: {ve}.")
                     flag_success = False
                     break
 
@@ -101,14 +110,16 @@ def write_glyph_imgs_mp(opts):
                 try:
                     font_width, font_height = font.getsize(char)
                 except Exception as e:
-                    logging.error(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
+                    logging.info(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
+                    # print(f"Can't calculate height and width for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
 
                 try:
                     ascent, descent = font.getmetrics()
                 except Exception as e:
-                    logging.error(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
+                    logging.info(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
+                    # print(f"Cannot get ascent, descent for charid {charid} in font {fontname}. Error: {e}")
                     flag_success = False
                     break
 
@@ -134,10 +145,13 @@ def write_glyph_imgs_mp(opts):
 
             if flag_success:
                 npy_path = os.path.join(sfd_path, fontname, 'imgs_' + str(opts.img_size) + '.npy')
-                np.save(npy_path, fontimgs_array)
+                try:
+                    np.save(npy_path, fontimgs_array)
+                    print(f"Generated {npy_path} by {worker_name}")
+                except Exception as e:
+                    print(f"Failed to generate {npy_path} by {worker_name}. Error: {e}")
                 with processed_fonts.get_lock():
                     processed_fonts.value += 1
-                print(f"Generated {npy_path} by {worker_name}")
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_nums)]
 
