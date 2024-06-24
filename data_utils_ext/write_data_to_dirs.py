@@ -98,7 +98,7 @@ def create_db(opts, output_path, log_path):
                     example = cur_font_glyphs[char_id]
                     sequence.append(example['sequence'])
                     seq_len.append(example['seq_len'])
-                    char_class.append(example['class'])  # char_name
+                    char_class.append(int(charset[char_id][1]))  # Use decimal_val as integer
                     binaryfp = example['binary_fp']
                 if not os.path.exists(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w))):
                     os.mkdir(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w)))
