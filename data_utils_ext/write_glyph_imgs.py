@@ -51,7 +51,7 @@ def write_glyph_imgs_mp(opts):
 
             fontname = ttf_names[i].split('.')[0]
             ttf_file_path = os.path.join(fonts_file_path, ttf_names[i])
-            print(f"Processing {ttf_file_path} by worker {worker_name}")
+            # print(f"Processing {ttf_file_path} by worker {worker_name}")
 
             if not os.path.exists(os.path.join(sfd_path, fontname)):
                 continue
