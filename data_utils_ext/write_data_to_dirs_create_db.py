@@ -26,17 +26,24 @@ def create_db(opts, output_path, log_path):
             cur_font_sfd_dir = os.path.join(sfd_path, font_id)
             cur_font_glyphs = []
 
-            if not os.path.exists(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')):
+            imgs_path = os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy')
+            print(f"Trying to read file: {imgs_path}")
+            if not os.path.exists(imgs_path):
+                print(f"File {imgs_path} not found")
                 continue
-            
+
+            print(f"Processing {imgs_path} by worker_{process_id}")
+
             for char_id in range(num_chars):
                 print(char_id)
-                if not os.path.exists(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))):
+                sfd_file = os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w))
+                if not os.path.exists(sfd_file):
+                    print(f"File {sfd_file} not found")
                     break
 
                 char_desp_f = open(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.txt'.format(font_id, num=char_id, width=num_chars_w)), 'r')
                 char_desp = char_desp_f.readlines()
-                sfd_f = open(os.path.join(cur_font_sfd_dir, '{}_{num:0{width}}.sfd'.format(font_id, num=char_id, width=num_chars_w)), 'r')
+                sfd_f = open(sfd_file, 'r')
                 sfd = sfd_f.read()
 
                 uni = int(char_desp[0].strip())
@@ -75,7 +82,7 @@ def create_db(opts, output_path, log_path):
                 sfd_f.close()
             
             if len(cur_font_glyphs) == num_chars:
-                rendered = np.load(os.path.join(cur_font_sfd_dir, 'imgs_' + str(opts.img_size) + '.npy'))
+                rendered = np.load(imgs_path)
 
                 if (rendered[0] == rendered[1]).all() == True:
                     continue
@@ -88,7 +95,7 @@ def create_db(opts, output_path, log_path):
                     example = cur_font_glyphs[char_id]
                     sequence.append(example['sequence'])
                     seq_len.append(example['seq_len'])
-                    char_class.append(int(charset[char_id][1]))
+                    char_class.append(example['class'])  # char_name
                     binaryfp = example['binary_fp']
                 if not os.path.exists(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w))):
                     os.mkdir(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w)))
@@ -99,10 +106,15 @@ def create_db(opts, output_path, log_path):
                 np.save(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w), 'font_id.npy'), np.array(binaryfp))
                 np.save(os.path.join(output_path, '{num:0{width}}'.format(num=i, width=num_fonts_w), 'rendered_' + str(opts.img_size) + '.npy'), rendered)
 
+            print(f"Processed {imgs_path} by worker_{process_id}")
+
     processes = [mp.Process(target=process, args=[pid]) for pid in range(num_processes)]
 
     for p in processes:
-        p.start()
+        try:
+            p.start()
+        except Exception as e:
+            print(f"Could not start process {p.name} due to: {e}")
     for p in processes:
         p.join()
 
