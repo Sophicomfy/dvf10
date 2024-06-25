@@ -1,8 +1,20 @@
+# convert_ttf_to_sfd_ids.py
+
 import fontforge  # noqa
 import os
 import multiprocessing as mp
 import data_preprocess_options
 import charset_parser
+import logging
+from datetime import datetime
+
+def setup_logging():
+    log_dir = "../logs"
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    log_filename = os.path.join(log_dir, f"convert_ttf_to_sfd_{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+    logging.basicConfig(filename=log_filename, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    return log_filename
 
 def convert_mp(opts):
     charset = charset_parser.parse_charset(opts.charset_path, opts.char_type)
@@ -33,12 +45,14 @@ def convert_mp(opts):
             except Exception as e:
                 print(f"Cannot open {font_name}")
                 print(e)
+                logging.error(f"Cannot open {font_name}: {e}")
                 continue
 
             target_dir = os.path.join(sfd_path, "{}".format(font_id))
             if not os.path.exists(target_dir):
                 os.makedirs(target_dir)
 
+            generated_characters = []
             for char in charset:
                 char_id = char[1]  # Use the second column as the Character ID
                 char_description = open(os.path.join(target_dir, '{}_{}.txt'.format(font_id, char_id)), 'w')
@@ -78,8 +92,11 @@ def convert_mp(opts):
                     char_description.write(f"{char_id}\n")
                     char_description.write(f"{font_id}")
 
+                    generated_characters.append(glyph_name)
+
                 except Exception as e:
                     print(f"Error processing character {char}: {e}")
+                    logging.error(f"Error processing character {char}: {e}")
 
                 char_description.close()
 
@@ -88,6 +105,7 @@ def convert_mp(opts):
                 processed_fonts.value += 1
                 print(f"Progress: {processed_fonts.value}/{font_num} processed fonts")
             print(f"Processed font: {font_file_path} to {target_dir} by worker {process_id}")
+            logging.info(f"Processed font {font_file_path} by worker {process_id} in {target_dir}. Characters: {', '.join(generated_characters)}")
 
     processes = [mp.Process(target=process, args=(pid, font_num_per_process)) for pid in range(process_num)]
 
@@ -97,9 +115,11 @@ def convert_mp(opts):
         p.join()
 
 def main():
+    log_filename = setup_logging()
     parser = data_preprocess_options.get_data_preprocess_options()
     opts = parser.parse_args()
     convert_mp(opts)
+    print(f"Logging to {log_filename}")
 
 if __name__ == "__main__":
     main()
