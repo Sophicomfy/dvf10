@@ -1,0 +1,4 @@
+Epoch: 557/610, Batch: 4/35, Val loss img l1:  0.088334, Val loss img pt:  33.608295, Val loss total:  2.886973, Val loss cmd:  0.171541, Val loss args:  2.565827, 
+Epoch: 571/610, Batch: 14/35, Val loss img l1:  0.091010, Val loss img pt:  27.514135, Val loss total:  1.381291, Val loss cmd:  0.067515, Val loss args:  1.195009, 
+Epoch: 585/610, Batch: 24/35, Val loss img l1:  0.042054, Val loss img pt:  16.351910, Val loss total:  1.075539, Val loss cmd:  0.058155, Val loss args:  0.889146, 
+Epoch: 599/610, Batch: 34/35, Val loss img l1:  0.018152, Val loss img pt:  7.770032, Val loss total:  0.886340, Val loss cmd:  0.050821, Val loss args:  0.720756, 
