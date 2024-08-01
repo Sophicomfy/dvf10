@@ -1,64 +1,49 @@
-import pandas as pd
+# run by python3 visualise.py ../logs/
+
 import matplotlib.pyplot as plt
+import numpy as np
+import os
+import sys
 
-# Load the log files
-train_log_path = '/Users/flp/Desktop/git/dvf-extended/logs/train_loss_log.txt'
-val_log_path = '/Users/flp/Desktop/git/dvf-extended/logs/val_loss_log.txt'
-
-# Function to parse log files
-def parse_log_file(file_path):
-    data = []
-    with open(file_path, 'r') as file:
-        for line in file:
-            parts = line.split(',')
-            if len(parts) < 3:  # Ensure there are at least three parts to avoid IndexError
-                continue
-            epoch_info = parts[0].split(':')[-1].strip().split('/')
-            try:
-                epoch = int(epoch_info[0])
-            except ValueError:
-                continue
-            batch_info = parts[1].split(':')[-1].strip().split('/')
-            try:
-                batch = int(batch_info[0])
-            except ValueError:
-                continue
-            try:
-                loss_dict = {kv.split(':')[0].strip(): float(kv.split(':')[1].strip()) for kv in parts[2:] if ':' in kv}
-            except (IndexError, ValueError):  # Skip lines that don't match the expected format
-                continue
-            data.append({'epoch': epoch, 'batch': batch, **loss_dict})
-    return pd.DataFrame(data)
-
-# Parse the log files
-train_df = parse_log_file(train_log_path)
-val_df = parse_log_file(val_log_path)
-
-# Display the dataframes
-print("Training Loss Data")
-print(train_df.head())
-
-print("Validation Loss Data")
-print(val_df.head())
-
-# Check if validation DataFrame is empty
-if not val_df.empty:
-    plt.figure(figsize=(12, 6))
-    plt.plot(train_df['epoch'], train_df['Loss'], label='Training Loss', color='blue')
-    plt.plot(val_df['epoch'], val_df['Val loss total'], label='Validation Loss', color='red')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training and Validation Loss Over Epochs')
+def plot_metric(metric, train_values, val_values, title):
+    epochs = range(1, len(train_values) + 1)
+    plt.plot(epochs, train_values, 'bo-', label=f'Training {metric}')
+    plt.plot(epochs, val_values, 'r-', label=f'Validation {metric}')
+    plt.title(title)
+    plt.xlabel('Epochs')
+    plt.ylabel(metric)
     plt.legend()
-    plt.grid(True)
     plt.show()
-else:
-    plt.figure(figsize=(12, 6))
-    plt.plot(train_df['epoch'], train_df['Loss'], label='Training Loss', color='blue')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training Loss Over Epochs')
-    plt.legend()
-    plt.grid(True)
-    plt.show()
-    print("Validation log file is empty or not in the expected format.")
+
+def load_and_plot_log(log_dir, train_log_file, val_log_file, metric, title):
+    train_log_path = os.path.join(log_dir, train_log_file)
+    val_log_path = os.path.join(log_dir, val_log_file)
+    with open(train_log_path, 'r') as f:
+        train_values = [float(line.strip()) for line in f]
+    with open(val_log_path, 'r') as f:
+        val_values = [float(line.strip()) for line in f]
+    plot_metric(metric, train_values, val_values, title)
+
+def process_logs(log_dir):
+    train_files = {}
+    val_files = {}
+    for filename in os.listdir(log_dir):
+        if 'train_loss_log' in filename:
+            prefix = filename.split('_train_loss_log')[0]
+            train_files[prefix] = filename
+        elif 'val_loss_log' in filename:
+            prefix = filename.split('_val_loss_log')[0]
+            val_files[prefix] = filename
+    for prefix in train_files:
+        if prefix in val_files:
+            train_log_file = train_files[prefix]
+            val_log_file = val_files[prefix]
+            title = f'{prefix.replace("_", " ").title()} Training and Validation Loss'
+            load_and_plot_log(log_dir, train_log_file, val_log_file, 'Loss', title)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python visualise.py <log_directory>")
+        sys.exit(1)
+    log_dir = sys.argv[1]
+    process_logs(log_dir)
